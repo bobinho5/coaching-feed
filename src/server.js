@@ -17,12 +17,9 @@ app.get("/api/feed", (req, res) => {
   if (!cache.lastUpdated) {
     return res.status(503).json({ error: "Feed not yet populated. Try again in a moment." });
   }
-
   let { sport = "all", type = "all", source = "all", limit = 100, since } = req.query;
   limit = Math.min(parseInt(limit) || 100, 500);
-
   let stories = cache.stories;
-
   if (sport !== "all") stories = stories.filter(s => s.sport === sport);
   if (type === "hire") stories = stories.filter(s => s.isHire);
   else if (type === "departure") stories = stories.filter(s => !s.isHire);
@@ -32,7 +29,6 @@ app.get("/api/feed", (req, res) => {
     const sinceDate = new Date(since);
     if (!isNaN(sinceDate)) stories = stories.filter(s => new Date(s.date) > sinceDate);
   }
-
   res.json({
     stories: stories.slice(0, limit),
     total: stories.length,
@@ -59,21 +55,21 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
-app.listen(PORT, async () => {
+// Start server first, then poll in background
+app.listen(PORT, () => {
   console.log(`[server] Coaching feed running on port ${PORT}`);
   console.log(`[server] Poll interval: every ${POLL_INTERVAL_HOURS} hours`);
-  console.log("[server] Running initial poll…");
-  try {
-    await pollAll();
-  } catch (err) {
-    console.error("[server] Initial poll failed:", err.message);
-  }
+
+  // Run poll in background — don't await it so server stays responsive
+  console.log("[server] Starting background poll…");
+  pollAll().catch(err => console.error("[server] Initial poll failed:", err.message));
+
   const cronExpression = `0 */${POLL_INTERVAL_HOURS} * * *`;
   cron.schedule(cronExpression, () => {
     console.log("[cron] Scheduled poll starting…");
     pollAll().catch(err => console.error("[cron] Poll failed:", err.message));
   });
-  console.log(`[server] Next scheduled poll: ${cronExpression}`);
+  console.log(`[server] Scheduled poll: ${cronExpression}`);
 });
 
 module.exports = app;
