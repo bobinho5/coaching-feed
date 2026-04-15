@@ -247,23 +247,24 @@ const SCHOOL_DOMAINS = [
   { name: "Youngstown State University",         domain: "ysupenguin.com" },
 ];
 
-const SCHOOL_SOURCES = SCHOOL_DOMAINS.flatMap(s => [
-  {
-    id: `school_${s.domain.replace(/\./g,'_')}_sidearm`,
+const RSS_PATHS = [
+  { suffix: "sidearm",   path: "/rss.aspx" },
+  { suffix: "sidearm2",  path: "/rss_feeds.aspx" },
+  { suffix: "presto",    path: "/news/rss.xml" },
+  { suffix: "rss",       path: "/rss" },
+  { suffix: "feed",      path: "/feed" },
+  { suffix: "newsfeed",  path: "/news/feed" },
+];
+
+const SCHOOL_SOURCES = SCHOOL_DOMAINS.flatMap(s =>
+  RSS_PATHS.map(({ suffix, path }) => ({
+    id: `school_${s.domain.replace(/\./g,'_')}_${suffix}`,
     name: s.name,
-    url: `https://${s.domain}/rss.aspx`,
+    url: `https://${s.domain}${path}`,
     school: s.name,
     domain: s.domain,
     type: "school"
-  },
-  {
-    id: `school_${s.domain.replace(/\./g,'_')}_presto`,
-    name: s.name,
-    url: `https://${s.domain}/news/rss.xml`,
-    school: s.name,
-    domain: s.domain,
-    type: "school"
-  }
-]);
+  }))
+);
 
 module.exports = { TRADE_SOURCES, SCHOOL_SOURCES, SCHOOL_DOMAINS };
