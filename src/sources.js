@@ -53,6 +53,11 @@ const TRADE_SOURCES = [
   { id: "espn_ncaaf",           name: "ESPN College Football",        url: "https://www.espn.com/espn/rss/ncf/news",                     sport: "football",   divisions: ["DI"] },
   { id: "espn_ncaab",           name: "ESPN College Basketball",      url: "https://www.espn.com/espn/rss/ncb/news",                     sport: "basketball", divisions: ["DI"] },
   { id: "espn_ncaaw",           name: "ESPN Women's Basketball",      url: "https://www.espn.com/espn/rss/ncw/news",                     sport: "basketball", divisions: ["DI"] },
+  { id: "yahoo_ncaaf",   name: "Yahoo College Football",      url: "https://sports.yahoo.com/college-football/rss/",      sport: "football",   divisions: ["DI"] },
+  { id: "yahoo_ncaab",   name: "Yahoo College Basketball",    url: "https://sports.yahoo.com/college-basketball/rss/",    sport: "basketball", divisions: ["DI"] },
+  { id: "yahoo_ncaaw",   name: "Yahoo Women's Basketball",    url: "https://sports.yahoo.com/womens-college-basketball/rss/", sport: "basketball", divisions: ["DI"] },
+  { id: "yahoo_ncaab2",  name: "Yahoo College Baseball",      url: "https://sports.yahoo.com/college-baseball/rss/",      sport: "baseball",   divisions: ["DI"] },
+  { id: "yahoo_sports",  name: "Yahoo Sports",                url: "https://sports.yahoo.com/rss/",                       sport: "multiple",   divisions: ["DI"] },
 ];
 
 const SCHOOL_DOMAINS = [
