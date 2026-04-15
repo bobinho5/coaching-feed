@@ -55,15 +55,11 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 
-// Start server first, then poll in background
 app.listen(PORT, () => {
   console.log(`[server] Coaching feed running on port ${PORT}`);
   console.log(`[server] Poll interval: every ${POLL_INTERVAL_HOURS} hours`);
-
-  // Run poll in background — don't await it so server stays responsive
   console.log("[server] Starting background poll…");
-  pollAll().catch(err => console.error("[server] Initial poll failed:", err.message));
-
+  pollAll().catch(err => console.error("[server] Poll failed:", err.message));
   const cronExpression = `0 */${POLL_INTERVAL_HOURS} * * *`;
   cron.schedule(cronExpression, () => {
     console.log("[cron] Scheduled poll starting…");
