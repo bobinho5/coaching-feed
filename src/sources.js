@@ -7,16 +7,12 @@ const TRADE_SOURCES = [
   { id: "nfca",              name: "NFCA",                url: "https://nfca.org/feed",                            sport: "softball",   divisions: ["DI","DII","DIII","NAIA"] },
   { id: "laxallstars",       name: "Lax All Stars",       url: "https://laxallstars.com/feed",                     sport: "lacrosse",   divisions: ["DI","DII","DIII","NAIA"] },
   { id: "collegehockeynews", name: "College Hockey News", url: "https://www.collegehockeynews.com/rss/",           sport: "hockey",     divisions: ["DI","DII","DIII"] },
-  { id: "thesoccerwire",     name: "The Soccer Wire",     url: "https://www.thesoccerwire.com/feed/",              sport: "soccer",     divisions: ["DI","DII","DIII","NAIA"], skipSSL: true },
-  { id: "intermatwrestle",   name: "InterMat Wrestling",  url: "https://intermatwrestle.com/rss/articles",         sport: "wrestling",  divisions: ["DI","DII","DIII","NAIA"] },
-  { id: "row2k",             name: "Row2k",               url: "https://www.row2k.com/rss/collegiate.xml",         sport: "rowing",     divisions: ["DI","DII","DIII"] },
+  { id: "topdrawersoccer",   name: "TopDrawer Soccer",    url: "https://www.topdrawersoccer.com/rss",              sport: "soccer",     divisions: ["DI","DII","DIII","NAIA"] },
+  { id: "intermatwrestle",   name: "InterMat Wrestling",  url: "https://intermatwrestle.com/articles/rss",         sport: "wrestling",  divisions: ["DI","DII","DIII","NAIA"] },
+  { id: "row2k",             name: "Row2k",               url: "https://www.row2k.com/rss/news.xml",               sport: "rowing",     divisions: ["DI","DII","DIII"] },
   { id: "ustfccca",          name: "USTFCCCA",            url: "https://www.ustfccca.org/feed",                    sport: "track",      divisions: ["DI","DII","DIII","NAIA"] },
   { id: "volleyballmag",     name: "Volleyball Magazine", url: "https://volleyballmag.com/feed/",                  sport: "volleyball", divisions: ["DI","DII","DIII","NAIA"] },
-  { id: "collegegymnastics", name: "College Gym News",    url: "https://collegegymnastics.com/feed/",              sport: "gymnastics", divisions: ["DI","DII","DIII"] },
-  { id: "d3football",        name: "D3Football",          url: "https://www.d3football.com/rss",                   sport: "football",   divisions: ["DIII"] },
-  { id: "d3hoops",           name: "D3Hoops",             url: "https://www.d3hoops.com/feed",                     sport: "basketball", divisions: ["DIII"] },
   { id: "ncaa_news",         name: "NCAA News",           url: "https://www.ncaa.org/rss/news",                    sport: "multiple",   divisions: ["DI","DII","DIII"] },
-  { id: "naia_news",         name: "NAIA News",           url: "https://www.naia.org/rss/news",                    sport: "multiple",   divisions: ["NAIA"] },
 ];
 
 const SCHOOL_DOMAINS = [
