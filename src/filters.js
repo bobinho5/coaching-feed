@@ -15,6 +15,25 @@ const HIRE_KEYWORDS = [
   "introduced as",
   "welcomes new coach",
   "new coaching staff",
+  "tabs ",
+  "tabbed ",
+  "taps ",
+  "tapped ",
+  "names coach",
+  "names new",
+  "announces coach",
+  "announces hire",
+  "elevated to",
+  "promoted to head coach",
+  "takes over as",
+  "to lead ",
+  "to coach ",
+  "as next head coach",
+  "as its head coach",
+  "as the head coach",
+  "head coaching position",
+  "head coaching job",
+  "head coaching vacancy",
 ];
 
 const DEPARTURE_KEYWORDS = [
@@ -32,6 +51,14 @@ const DEPARTURE_KEYWORDS = [
   "interim head coach",
   "interim coach",
   "coaching search",
+  "let go",
+  "not returning",
+  "will not return",
+  "contract not renewed",
+  "mutual agreement",
+  "leaving the program",
+  "departure",
+  "stepping aside",
 ];
 
 const ALL_COACHING_KEYWORDS = [...HIRE_KEYWORDS, ...DEPARTURE_KEYWORDS];
