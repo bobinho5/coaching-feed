@@ -3,8 +3,8 @@ const { TRADE_SOURCES, SCHOOL_SOURCES } = require("./sources");
 const { isCoachingStory, detectSport, isHire } = require("./filters");
 
 const parser = new Parser({
-  timeout: 10000,
-  headers: { "User-Agent": "CoachingFeedBot/1.0 (college athletics news aggregator)" },
+  timeout: 8000,
+  headers: { "User-Agent": "CoachingFeedBot/1.0" },
   customFields: { item: ["description", "content:encoded"] },
 });
 
@@ -59,6 +59,19 @@ async function fetchFeed(source, sourceSport = null) {
   }
 }
 
+async function runInBatches(sources, batchSize, delayMs) {
+  const results = [];
+  for (let i = 0; i < sources.length; i += batchSize) {
+    const batch = sources.slice(i, i + batchSize);
+    const batchResults = await Promise.allSettled(batch.map(s => fetchFeed(s, s.sport)));
+    results.push(...batchResults);
+    if (i + batchSize < sources.length) {
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+  }
+  return results;
+}
+
 async function pollAll() {
   console.log("[poller] Starting full poll…");
   const start = Date.now();
@@ -66,10 +79,9 @@ async function pollAll() {
   let tradeResponded = 0;
   let schoolsResponded = 0;
 
+  // Trade sources — small batch, fast
   console.log(`[poller] Polling ${TRADE_SOURCES.length} trade sources…`);
-  const tradeResults = await Promise.allSettled(
-    TRADE_SOURCES.map(s => fetchFeed(s, s.sport))
-  );
+  const tradeResults = await runInBatches(TRADE_SOURCES, 5, 1000);
   for (let i = 0; i < tradeResults.length; i++) {
     const result = tradeResults[i];
     if (result.status === "fulfilled" && result.value.ok) {
@@ -77,19 +89,13 @@ async function pollAll() {
       allStories.push(...result.value.stories);
     }
   }
-  console.log(`[poller] Trade sources: ${tradeResponded}/${TRADE_SOURCES.length} responded, ${allStories.length} stories`);
+  console.log(`[poller] Trade: ${tradeResponded}/${TRADE_SOURCES.length} responded, ${allStories.length} stories`);
 
-  const BATCH_SIZE = 20;
-  const schoolResults = [];
-  for (let i = 0; i < SCHOOL_SOURCES.length; i += BATCH_SIZE) {
-    const batch = SCHOOL_SOURCES.slice(i, i + BATCH_SIZE);
-    const batchResults = await Promise.allSettled(batch.map(s => fetchFeed(s)));
-    schoolResults.push(...batchResults);
-    if (i + BATCH_SIZE < SCHOOL_SOURCES.length) {
-      await new Promise(r => setTimeout(r, 500));
-    }
-  }
+  // School sources — small batches with generous delays to stay within memory
+  console.log(`[poller] Polling ${SCHOOL_SOURCES.length} school RSS paths…`);
+  const schoolResults = await runInBatches(SCHOOL_SOURCES, 5, 1500);
 
+  // Deduplicate — only keep first successful result per school
   const seenSchools = new Set();
   for (let i = 0; i < schoolResults.length; i++) {
     const result = schoolResults[i];
@@ -102,8 +108,9 @@ async function pollAll() {
       }
     }
   }
-  console.log(`[poller] Schools: ${schoolsResponded} responded with data, ${allStories.length} total stories`);
+  console.log(`[poller] Schools: ${schoolsResponded} responded with stories`);
 
+  // Deduplicate stories by link
   const seen = new Set();
   const deduped = allStories.filter(s => {
     const key = s.link || s.title;
@@ -119,7 +126,7 @@ async function pollAll() {
     stories: deduped,
     lastUpdated: new Date().toISOString(),
     stats: {
-      totalSources: TRADE_SOURCES.length + SCHOOL_SOURCES.length / 2,
+      totalSources: TRADE_SOURCES.length + SCHOOL_SOURCES.length / 6,
       sourcesResponded: tradeResponded + schoolsResponded,
       tradeResponded,
       schoolsResponded,
@@ -128,7 +135,7 @@ async function pollAll() {
     },
   };
 
-  console.log(`[poller] Done in ${duration}s — ${deduped.length} unique coaching stories cached`);
+  console.log(`[poller] Done in ${duration}s — ${deduped.length} unique stories cached`);
 }
 
 function getCache() {
