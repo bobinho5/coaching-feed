@@ -13,6 +13,11 @@ const TRADE_SOURCES = [
   { id: "ustfccca",          name: "USTFCCCA",            url: "https://www.ustfccca.org/feed",                    sport: "track",      divisions: ["DI","DII","DIII","NAIA"] },
   { id: "volleyballmag",     name: "Volleyball Magazine", url: "https://volleyballmag.com/feed/",                  sport: "volleyball", divisions: ["DI","DII","DIII","NAIA"] },
   { id: "ncaa_news",         name: "NCAA News",           url: "https://www.ncaa.org/rss/news",                    sport: "multiple",   divisions: ["DI","DII","DIII"] },
+  { id: "espn_top",        name: "ESPN",                    url: "https://www.espn.com/espn/rss/news",                         sport: "multiple",   divisions: ["DI"] },
+  { id: "espn_ncaaf",      name: "ESPN College Football",   url: "https://www.espn.com/espn/rss/ncf/news",                     sport: "football",   divisions: ["DI"] },
+  { id: "espn_ncaab",      name: "ESPN College Basketball", url: "https://www.espn.com/espn/rss/ncb/news",                     sport: "basketball", divisions: ["DI"] },
+  { id: "espn_ncaaw",      name: "ESPN Women's Basketball", url: "https://www.espn.com/espn/rss/ncw/news",                     sport: "basketball", divisions: ["DI"] },
+  { id: "espn_college",    name: "ESPN College Sports",     url: "https://www.espn.com/espn/rss/college-sports/news",          sport: "multiple",   divisions: ["DI"] },
 ];
 
 const SCHOOL_DOMAINS = [
