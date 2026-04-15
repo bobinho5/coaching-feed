@@ -64,8 +64,8 @@ const DEPARTURE_KEYWORDS = [
   "head coach departure",
 ];
 
-// If a story contains ANY of these, it's about a player not a coach — exclude it
-const PLAYER_EXCLUSION_KEYWORDS = [
+const EXCLUSION_KEYWORDS = [
+  // Transfer portal / recruiting
   "transfer portal",
   "has entered the portal",
   "entered the transfer",
@@ -85,9 +85,8 @@ const PLAYER_EXCLUSION_KEYWORDS = [
   "nil contract",
   "grad transfer",
   "graduate transfer",
-  "student-athlete",
   "redshirt",
-  "eligibility",
+  "eligibility remaining",
   "drafted by",
   "nfl draft",
   "nba draft",
@@ -95,6 +94,77 @@ const PLAYER_EXCLUSION_KEYWORDS = [
   "declared for the draft",
   "going pro",
   "turns pro",
+
+  // Player awards and honors
+  "player of the week",
+  "athlete of the week",
+  "performer of the week",
+  "freshman of the week",
+  "pitcher of the week",
+  "hitter of the week",
+  "offensive player of the week",
+  "defensive player of the week",
+  "specialist of the week",
+  "goalie of the week",
+  "swimmer of the week",
+  "diver of the week",
+  "golfer of the week",
+  "newcomer of the week",
+  "all-conference",
+  "all conference",
+  "all-american",
+  "all american",
+  "all-region",
+  "all region",
+  "all-league",
+  "all league",
+  "all-academic",
+  "academic all",
+  "honor roll",
+  "dean's list",
+  "preseason watch list",
+  "watch list",
+  "award winner",
+  "award finalist",
+  "of the year award",
+  "player of the year",
+  "athlete of the year",
+  "coach of the year",
+  "most valuable player",
+  "mvp",
+
+  // Game/season results
+  "final score",
+  "box score",
+  "game recap",
+  "match recap",
+  "recap:",
+  "picks up win",
+  "earns victory",
+  "defeats ",
+  "falls to ",
+  "beats ",
+  "loses to ",
+  "shutout",
+  "sweep",
+  "standings update",
+  "rankings update",
+  "poll release",
+  "coaches poll",
+  "media poll",
+
+  // Schedules and general announcements
+  "schedule release",
+  "announces schedule",
+  "announces roster",
+  "roster announcement",
+  "signs class",
+  "signing class",
+  "senior day",
+  "senior night",
+  "hall of fame",
+  "jersey retirement",
+  "homecoming",
 ];
 
 const ALL_COACHING_KEYWORDS = [...HIRE_KEYWORDS, ...DEPARTURE_KEYWORDS];
@@ -122,11 +192,11 @@ const SPORT_PATTERNS = {
 function isCoachingStory(title = "", description = "") {
   const text = (title + " " + description).toLowerCase();
 
-  // First check — must contain a coaching keyword
+  // Must contain a coaching keyword
   if (!ALL_COACHING_KEYWORDS.some(kw => text.includes(kw))) return false;
 
-  // Second check — exclude if it looks like a player story
-  if (PLAYER_EXCLUSION_KEYWORDS.some(kw => text.includes(kw))) return false;
+  // Must NOT contain any exclusion keyword
+  if (EXCLUSION_KEYWORDS.some(kw => text.includes(kw))) return false;
 
   return true;
 }
