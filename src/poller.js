@@ -1,5 +1,5 @@
 const Parser = require("rss-parser");
-const { TRADE_SOURCES, SCHOOL_SOURCES } = require("./sources");
+const { TRADE_SOURCES } = require("./sources");
 const { isCoachingStory, detectSport, isHire } = require("./filters");
 
 const parser = new Parser({
@@ -30,7 +30,7 @@ function normalizeDate(dateStr) {
   return isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
 }
 
-async function fetchFeed(source, sourceSport = null) {
+async function fetchFeed(source) {
   try {
     const feed = await parser.parseURL(source.url);
     const stories = [];
@@ -49,7 +49,7 @@ async function fetchFeed(source, sourceSport = null) {
         sourceType: source.type || "trade",
         school: source.school || null,
         domain: source.domain || null,
-        sport: detectSport(title, desc, sourceSport),
+        sport: detectSport(title, desc, source.sport),
         isHire: isHire(title, desc),
       });
     }
@@ -59,58 +59,24 @@ async function fetchFeed(source, sourceSport = null) {
   }
 }
 
-async function runInBatches(sources, batchSize, delayMs) {
-  const results = [];
-  for (let i = 0; i < sources.length; i += batchSize) {
-    const batch = sources.slice(i, i + batchSize);
-    const batchResults = await Promise.allSettled(batch.map(s => fetchFeed(s, s.sport)));
-    results.push(...batchResults);
-    if (i + batchSize < sources.length) {
-      await new Promise(r => setTimeout(r, delayMs));
-    }
-  }
-  return results;
-}
-
 async function pollAll() {
-  console.log("[poller] Starting full poll…");
+  console.log("[poller] Starting trade sources poll…");
   const start = Date.now();
   const allStories = [];
   let tradeResponded = 0;
-  let schoolsResponded = 0;
 
-  // Trade sources — small batch, fast
-  console.log(`[poller] Polling ${TRADE_SOURCES.length} trade sources…`);
-  const tradeResults = await runInBatches(TRADE_SOURCES, 5, 1000);
-  for (let i = 0; i < tradeResults.length; i++) {
-    const result = tradeResults[i];
-    if (result.status === "fulfilled" && result.value.ok) {
+  for (const source of TRADE_SOURCES) {
+    const result = await fetchFeed(source);
+    if (result.ok) {
       tradeResponded++;
-      allStories.push(...result.value.stories);
+      allStories.push(...result.stories);
+      console.log(`[poller] ${source.name}: ${result.count} stories`);
+    } else {
+      console.log(`[poller] ${source.name}: failed — ${result.error}`);
     }
+    await new Promise(r => setTimeout(r, 500));
   }
-  console.log(`[poller] Trade: ${tradeResponded}/${TRADE_SOURCES.length} responded, ${allStories.length} stories`);
 
-  // School sources — small batches with generous delays to stay within memory
-  console.log(`[poller] Polling ${SCHOOL_SOURCES.length} school RSS paths…`);
-  const schoolResults = await runInBatches(SCHOOL_SOURCES, 5, 1500);
-
-  // Deduplicate — only keep first successful result per school
-  const seenSchools = new Set();
-  for (let i = 0; i < schoolResults.length; i++) {
-    const result = schoolResults[i];
-    const source = SCHOOL_SOURCES[i];
-    if (result.status === "fulfilled" && result.value.ok && result.value.count > 0) {
-      if (!seenSchools.has(source.school)) {
-        seenSchools.add(source.school);
-        schoolsResponded++;
-        allStories.push(...result.value.stories);
-      }
-    }
-  }
-  console.log(`[poller] Schools: ${schoolsResponded} responded with stories`);
-
-  // Deduplicate stories by link
   const seen = new Set();
   const deduped = allStories.filter(s => {
     const key = s.link || s.title;
@@ -126,16 +92,16 @@ async function pollAll() {
     stories: deduped,
     lastUpdated: new Date().toISOString(),
     stats: {
-      totalSources: TRADE_SOURCES.length + SCHOOL_SOURCES.length / 6,
-      sourcesResponded: tradeResponded + schoolsResponded,
+      totalSources: TRADE_SOURCES.length,
+      sourcesResponded: tradeResponded,
       tradeResponded,
-      schoolsResponded,
+      schoolsResponded: 0,
       totalStories: deduped.length,
       lastPollDuration: parseFloat(duration),
     },
   };
 
-  console.log(`[poller] Done in ${duration}s — ${deduped.length} unique stories cached`);
+  console.log(`[poller] Done in ${duration}s — ${deduped.length} stories from ${tradeResponded} trade sources`);
 }
 
 function getCache() {
