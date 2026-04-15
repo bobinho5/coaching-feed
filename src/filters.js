@@ -23,42 +23,78 @@ const HIRE_KEYWORDS = [
   "names new",
   "announces coach",
   "announces hire",
-  "elevated to",
+  "elevated to head coach",
   "promoted to head coach",
-  "takes over as",
-  "to lead ",
-  "to coach ",
+  "takes over as head coach",
+  "to lead the program",
   "as next head coach",
   "as its head coach",
   "as the head coach",
   "head coaching position",
   "head coaching job",
   "head coaching vacancy",
+  "named to lead",
+  "will lead the",
+  "new women's coach",
+  "new men's coach",
 ];
 
 const DEPARTURE_KEYWORDS = [
-  "steps down",
-  "stepping down",
+  "steps down as head coach",
+  "stepping down as head coach",
   "resigns as head coach",
   "resigned as head coach",
   "fired as head coach",
   "dismissed as head coach",
-  "parts ways",
-  "parting ways",
+  "parts ways with head coach",
+  "parting ways with head coach",
   "coaching change",
   "coaching vacancy",
-  "search for new",
+  "search for head coach",
   "interim head coach",
-  "interim coach",
+  "interim coach named",
   "coaching search",
-  "let go",
-  "not returning",
-  "will not return",
+  "let go as head coach",
+  "not returning as coach",
+  "will not return as coach",
   "contract not renewed",
-  "mutual agreement",
-  "leaving the program",
-  "departure",
-  "stepping aside",
+  "mutual agreement to part",
+  "leaving the program as coach",
+  "stepping aside as coach",
+  "head coach departure",
+];
+
+// If a story contains ANY of these, it's about a player not a coach — exclude it
+const PLAYER_EXCLUSION_KEYWORDS = [
+  "transfer portal",
+  "has entered the portal",
+  "entered the transfer",
+  "commits to",
+  "committed to",
+  "verbal commitment",
+  "signs with",
+  "signing with",
+  "letter of intent",
+  "national signing day",
+  "recruiting class",
+  "scholarship offer",
+  "decommits",
+  "decommitted",
+  "portal entry",
+  "nil deal",
+  "nil contract",
+  "grad transfer",
+  "graduate transfer",
+  "student-athlete",
+  "redshirt",
+  "eligibility",
+  "drafted by",
+  "nfl draft",
+  "nba draft",
+  "mlb draft",
+  "declared for the draft",
+  "going pro",
+  "turns pro",
 ];
 
 const ALL_COACHING_KEYWORDS = [...HIRE_KEYWORDS, ...DEPARTURE_KEYWORDS];
@@ -85,7 +121,14 @@ const SPORT_PATTERNS = {
 
 function isCoachingStory(title = "", description = "") {
   const text = (title + " " + description).toLowerCase();
-  return ALL_COACHING_KEYWORDS.some(kw => text.includes(kw));
+
+  // First check — must contain a coaching keyword
+  if (!ALL_COACHING_KEYWORDS.some(kw => text.includes(kw))) return false;
+
+  // Second check — exclude if it looks like a player story
+  if (PLAYER_EXCLUSION_KEYWORDS.some(kw => text.includes(kw))) return false;
+
+  return true;
 }
 
 function detectSport(title = "", description = "", sourceSport = null) {
