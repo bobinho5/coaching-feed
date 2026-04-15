@@ -1,4 +1,6 @@
 const Parser = require("rss-parser");
+const axios = require("axios");
+const https = require("https");
 const { TRADE_SOURCES } = require("./sources");
 const { isCoachingStory, detectSport, isHire } = require("./filters");
 
@@ -32,7 +34,17 @@ function normalizeDate(dateStr) {
 
 async function fetchFeed(source) {
   try {
-    const feed = await parser.parseURL(source.url);
+    const axiosOptions = {
+      timeout: 8000,
+      responseType: "text",
+      headers: { "User-Agent": "CoachingFeedBot/1.0" },
+    };
+    if (source.skipSSL) {
+      axiosOptions.httpsAgent = new https.Agent({ rejectUnauthorized: false });
+    }
+    const response = await axios.get(source.url, axiosOptions);
+    const sanitized = response.data.replace(/&(?![a-zA-Z#][a-zA-Z0-9]*;)/g, "&amp;");
+    const feed = await parser.parseString(sanitized);
     const stories = [];
     for (const item of feed.items || []) {
       const title = item.title || "";
