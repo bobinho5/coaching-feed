@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coaching Hire Feed</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f7f7f5; --border: rgba(0,0,0,0.1);
+    --text: #1a1a1a; --text2: #666; --text3: #999; --accent: #1a1a1a;
+    --green-bg: #eaf3de; --green-text: #27500a;
+    --blue-bg: #e6f1fb;  --blue-text: #0c447c;
+    --purple-bg: #eeedfe; --purple-text: #3c3489;
+    --amber-bg: #faeeda; --amber-text: #633806;
+    --red-bg: #fcebeb;   --red-text: #791f1f;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); font-size: 15px; }
+  .app { max-width: 860px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .header { margin-bottom: 1.5rem; }
+  .header h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .header p  { font-size: 13px; color: var(--text2); }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem; align-items: center; }
+  select { height: 34px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: var(--bg); color: var(--text); cursor: pointer; }
+  select:focus { outline: none; border-color: #888; }
+  .refresh-btn { height: 34px; padding: 0 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: var(--bg); color: var(--text); cursor: pointer; }
+  .refresh-btn:hover { background: var(--bg2); }
+  .refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .stat { background: var(--bg2); border-radius: 8px; padding: 10px 14px; }
+  .stat-val { font-size: 22px; font-weight: 600; }
+  .stat-lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .status { font-size: 13px; color: var(--text2); margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; min-height: 20px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
+  .dot.live { background: #4caf50; animation: pulse 2s infinite; }
+  .dot.loading { background: #ff9800; }
+  .dot.error { background: #f44336; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .story { padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .story:last-child { border-bottom: none; }
+  .story-title { font-size: 14px; font-weight: 500; line-height: 1.45; margin-bottom: 7px; }
+  .story-title a { color: var(--text); text-decoration: none; }
+  .story-title a:hover { text-decoration: underline; }
+  .story-meta { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; }
+  .b-hire      { background: var(--green-bg); color: var(--green-text); }
+  .b-departure { background: var(--red-bg);   color: var(--red-text); }
+  .b-school    { background: var(--purple-bg); color: var(--purple-text); }
+  .b-trade     { background: var(--blue-bg);  color: var(--blue-text); }
+  .b-sport     { background: var(--amber-bg); color: var(--amber-text); }
+  .meta-date   { font-size: 11px; color: var(--text3); }
+  .story-desc  { font-size: 13px; color: var(--text2); line-height: 1.5; margin-top: 5px; }
+  .empty { text-align: center; padding: 4rem 1rem; color: var(--text2); }
+  .empty h3 { font-size: 16px; margin-bottom: 8px; }
+  .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--text); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .load-more { display: block; width: 100%; margin-top: 1.5rem; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); font-size: 13px; cursor: pointer; color: var(--text); }
+  .load-more:hover { background: var(--bg2); }
+  @media (max-width: 600px) { .stats-row { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>Coaching hire feed</h1>
+    <p>Live feed of coaching changes across college athletics — all sports, all divisions.</p>
+  </div>
+  <div class="controls">
+    <select id="selSport" onchange="applyFilters()">
+      <option value="all">All sports</option>
+      <option value="football">Football</option>
+      <option value="basketball">Basketball</option>
+      <option value="baseball">Baseball</option>
+      <option value="softball">Softball</option>
+      <option value="soccer">Soccer</option>
+      <option value="swimming">Swimming / Diving</option>
+      <option value="track">Track & Field / XC</option>
+      <option value="volleyball">Volleyball</option>
+      <option value="lacrosse">Lacrosse</option>
+      <option value="hockey">Hockey</option>
+      <option value="wrestling">Wrestling</option>
+      <option value="rowing">Rowing</option>
+      <option value="gymnastics">Gymnastics</option>
+      <option value="tennis">Tennis</option>
+      <option value="other">Other</option>
+    </select>
+    <select id="selType" onchange="applyFilters()">
+      <option value="all">Hires + departures</option>
+      <option value="hire">Hires only</option>
+      <option value="departure">Departures only</option>
+    </select>
+    <select id="selSource" onchange="applyFilters()">
+      <option value="all">All sources</option>
+      <option value="trade">Trade media only</option>
+      <option value="school">School sites only</option>
+    </select>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadFeed()">Refresh</button>
+  </div>
+  <div class="stats-row" id="statsRow" style="display:none">
+    <div class="stat"><div class="stat-val" id="sStories">—</div><div class="stat-lbl">Stories found</div></div>
+    <div class="stat"><div class="stat-val" id="sSources">—</div><div class="stat-lbl">Sources scanned</div></div>
+    <div class="stat"><div class="stat-val" id="sSchools">—</div><div class="stat-lbl">Schools responded</div></div>
+    <div class="stat"><div class="stat-val" id="sUpdated">—</div><div class="stat-lbl">Last updated</div></div>
+  </div>
+  <div class="status" id="statusBar">
+    <span class="dot loading"></span>
+    <span>Loading feed…</span>
+  </div>
+  <div id="feed"></div>
+  <button class="load-more" id="loadMoreBtn" style="display:none" onclick="showMore()">Show more stories</button>
+</div>
+<script>
+const API = "";
+let allStories = [];
+let visibleCount = 30;
+const PAGE_SIZE = 30;
+
+function timeAgo(isoStr) {
+  if (!isoStr) return "";
+  const d = new Date(isoStr), diff = (Date.now() - d) / 1000;
+  if (isNaN(diff)) return "";
+  if (diff < 3600)   return Math.round(diff / 60) + "m ago";
+  if (diff < 86400)  return Math.round(diff / 3600) + "h ago";
+  if (diff < 604800) return Math.round(diff / 86400) + "d ago";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ""; }
+
+function setStatus(msg, state = "live") {
+  const bar = document.getElementById("statusBar");
+  bar.querySelector(".dot").className = "dot " + state;
+  bar.querySelector("span:last-child").textContent = msg;
+}
+
+function renderStories(stories) {
+  const feed = document.getElementById("feed");
+  if (stories.length === 0) {
+    feed.innerHTML = `<div class="empty"><h3>No stories match this filter</h3><p>Try changing sport or source filters above.</p></div>`;
+    document.getElementById("loadMoreBtn").style.display = "none";
+    return;
+  }
+  feed.innerHTML = stories.slice(0, visibleCount).map(s => {
+    const typeBadge = s.isHire ? `<span class="badge b-hire">Hire</span>` : `<span class="badge b-departure">Departure</span>`;
+    const sourceBadge = s.sourceType === "school"
+      ? `<span class="badge b-school">${s.school || s.source}</span>`
+      : `<span class="badge b-trade">${s.source}</span>`;
+    const sportBadge = s.sport && s.sport !== "other" && s.sport !== "multiple"
+      ? `<span class="badge b-sport">${capitalize(s.sport)}</span>` : "";
+    return `<div class="story">
+      <div class="story-title"><a href="${s.link}" target="_blank" rel="noopener">${s.title}</a></div>
+      <div class="story-meta">${typeBadge}${sourceBadge}${sportBadge}<span class="meta-date">${timeAgo(s.date)}</span></div>
+      ${s.description ? `<div class="story-desc">${s.description}</div>` : ""}
+    </div>`;
+  }).join("");
+  const btn = document.getElementById("loadMoreBtn");
+  btn.style.display = visibleCount < stories.length ? "block" : "none";
+  btn.textContent = `Show more stories (${stories.length - visibleCount} remaining)`;
+}
+
+function applyFilters() {
+  visibleCount = PAGE_SIZE;
+  const sport = document.getElementById("selSport").value;
+  const type  = document.getElementById("selType").value;
+  const source = document.getElementById("selSource").value;
+  let filtered = allStories;
+  if (sport !== "all") filtered = filtered.filter(s => s.sport === sport);
+  if (type === "hire") filtered = filtered.filter(s => s.isHire);
+  if (type === "departure") filtered = filtered.filter(s => !s.isHire);
+  if (source === "trade") filtered = filtered.filter(s => s.sourceType === "trade");
+  if (source === "school") filtered = filtered.filter(s => s.sourceType === "school");
+  document.getElementById("sStories").textContent = filtered.length;
+  renderStories(filtered);
+}
+
+function showMore() { visibleCount += PAGE_SIZE; applyFilters(); }
+
+async function loadFeed() {
+  const btn = document.getElementById("refreshBtn");
+  btn.disabled = true;
+  setStatus("Loading feed…", "loading");
+  const params = new URLSearchParams({
+    sport: document.getElementById("selSport").value,
+    type:  document.getElementById("selType").value,
+    source: document.getElementById("selSource").value,
+    limit: 500
+  });
+  try {
+    const res = await fetch(`${API}/api/feed?${params}`);
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    const data = await res.json();
+    allStories = data.stories;
+    visibleCount = PAGE_SIZE;
+    document.getElementById("statsRow").style.display = "grid";
+    document.getElementById("sSources").textContent = data.stats.sourcesResponded || "—";
+    document.getElementById("sSchools").textContent = data.stats.schoolsResponded || "—";
+    document.getElementById("sUpdated").textContent = data.lastUpdated ? timeAgo(data.lastUpdated) : "—";
+    applyFilters();
+    setStatus(`Updated ${timeAgo(data.lastUpdated)} · ${data.stats.lastPollDuration}s poll · ${data.stats.sourcesResponded} sources responded`, "live");
+  } catch (err) {
+    setStatus("Could not reach server. Is the backend running?", "error");
+    document.getElementById("feed").innerHTML = `<div class="empty"><h3>Backend not connected</h3><p>Make sure your server is running and this file is being served from it.</p></div>`;
+  }
+  btn.disabled = false;
+}
+
+loadFeed();
+setInterval(loadFeed, 15 * 60 * 1000);
+</script>
+</body>
+</html>
